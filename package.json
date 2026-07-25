@@ -1,0 +1,44 @@
+{
+  "name": "tree-sitter-deep-pink-ink",
+  "version": "0.1.0",
+  "description": "DeepPinkInk grammar for tree-sitter",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tree-sitter/tree-sitter-deep_pink_ink.git"
+  },
+  "funding": "",
+  "license": "MIT",
+  "author": {
+    "name": "Natalie Cuthbert",
+    "email": "natalie@cuthbert.co.za",
+    "url": "https://github.com/ncthbrt"
+  },
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "keywords": [
+    "incremental",
+    "parsing",
+    "tree-sitter",
+    "deep_pink_ink"
+  ],
+  "files": [
+    "grammar.js",
+    "tree-sitter.json",
+    "binding.gyp",
+    "prebuilds/**",
+    "bindings/node/*",
+    "queries/*",
+    "src/**",
+    "*.wasm"
+  ],
+  "devDependencies": {
+    "prebuildify": "^6.0.1",
+    "tree-sitter-cli": "^0.26.11"
+  },
+  "scripts": {
+    "prestart": "tree-sitter build --wasm",
+    "start": "tree-sitter playground",
+    "test": "node --test bindings/node/*_test.js"
+  }
+}
