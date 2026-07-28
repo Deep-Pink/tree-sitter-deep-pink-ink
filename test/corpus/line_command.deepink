@@ -1,0 +1,184 @@
+===
+Line command with quoted string value
+===
+>>> test_a: "seven hours"
+
+---
+
+(entry_point
+  (line_command
+    (triple_greater)
+    (whitespace)
+    (named_command
+      (string
+        (identifier_string
+          (identifier)))
+      (colon)
+      (whitespace)
+      (arguments
+        (argument_array
+          (value
+            (string
+              (quoted_string
+                (start_string)
+                (string_value)
+                (end_string)))))))
+    (stop_token
+      (eol))))
+
+===
+Line Command with multiple Values
+===
+>>> test_a: "seven hours", b=(a, 1, "c" = (0, 1, false, null))
+
+---
+
+(entry_point
+  (line_command
+    (triple_greater)
+    (whitespace)
+    (named_command
+      (string
+        (identifier_string
+          (identifier)))
+      (colon)
+      (whitespace)
+      (arguments
+        (argument_bag
+          (value
+            (string
+              (quoted_string
+                (start_string)
+                (string_value)
+                (end_string))))
+          (comma)
+          (whitespace)
+          (named_value
+            (string
+              (identifier_string
+                (identifier)))
+            (equals_sign)
+            (value
+              (collection
+                (bag
+                  (open_parenthesis)
+                  (value
+                    (string
+                      (identifier_string
+                        (identifier))))
+                  (comma)
+                  (whitespace)
+                  (value
+                    (number))
+                  (comma)
+                  (whitespace)
+                  (named_value
+                    (string
+                      (quoted_string
+                        (start_string)
+                        (string_value)
+                        (end_string)))
+                    (whitespace)
+                    (equals_sign)
+                    (whitespace)
+                    (value
+                      (collection
+                        (array
+                          (open_parenthesis)
+                          (value
+                            (number))
+                          (comma)
+                          (whitespace)
+                          (value
+                            (number))
+                          (comma)
+                          (whitespace)
+                          (value
+                            (boolean
+                              (false)))
+                          (comma)
+                          (whitespace)
+                          (value
+                            (null))
+                          (close_parenthesis)))))
+                  (close_parenthesis))))))))
+    (stop_token
+      (eol))))
+
+===
+Tag Command with multiple Values
+===
+#line: "seven hours", b=(a, 1, "c" = (0, 1, false, null))
+
+---
+
+(entry_point
+  (tag_command
+    (hash)
+    (named_command
+      (string
+        (identifier_string
+          (identifier)))
+      (colon)
+      (whitespace)
+      (arguments
+        (argument_bag
+          (value
+            (string
+              (quoted_string
+                (start_string)
+                (string_value)
+                (end_string))))
+          (comma)
+          (whitespace)
+          (named_value
+            (string
+              (identifier_string
+                (identifier)))
+            (equals_sign)
+            (value
+              (collection
+                (bag
+                  (open_parenthesis)
+                  (value
+                    (string
+                      (identifier_string
+                        (identifier))))
+                  (comma)
+                  (whitespace)
+                  (value
+                    (number))
+                  (comma)
+                  (whitespace)
+                  (named_value
+                    (string
+                      (quoted_string
+                        (start_string)
+                        (string_value)
+                        (end_string)))
+                    (whitespace)
+                    (equals_sign)
+                    (whitespace)
+                    (value
+                      (collection
+                        (array
+                          (open_parenthesis)
+                          (value
+                            (number))
+                          (comma)
+                          (whitespace)
+                          (value
+                            (number))
+                          (comma)
+                          (whitespace)
+                          (value
+                            (boolean
+                              (false)))
+                          (comma)
+                          (whitespace)
+                          (value
+                            (null))
+                          (close_parenthesis)))))
+                  (close_parenthesis))))))))
+    (stop_token
+      (eol))))

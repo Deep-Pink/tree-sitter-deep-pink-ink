@@ -207,6 +207,26 @@
     }
   },
   {
+    "type": "entry_point",
+    "named": true,
+    "root": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "line_command",
+          "named": true
+        },
+        {
+          "type": "tag_command",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "identifier_string",
     "named": true,
     "fields": {
@@ -223,9 +243,24 @@
     }
   },
   {
+    "type": "implicit_command",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "arguments",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "line_command",
     "named": true,
-    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -296,11 +331,7 @@
         "required": true,
         "types": [
           {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "quoted_string",
+            "type": "string",
             "named": true
           }
         ]
@@ -320,21 +351,24 @@
   {
     "type": "named_value",
     "named": true,
-    "fields": {},
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "string",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": true,
       "types": [
         {
           "type": "equals_sign",
-          "named": true
-        },
-        {
-          "type": "identifier_string",
-          "named": true
-        },
-        {
-          "type": "quoted_string",
           "named": true
         },
         {
@@ -415,6 +449,33 @@
     "fields": {}
   },
   {
+    "type": "tag_command",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "hash",
+          "named": true
+        },
+        {
+          "type": "implicit_command",
+          "named": true
+        },
+        {
+          "type": "named_command",
+          "named": true
+        },
+        {
+          "type": "stop_token",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "unit_command",
     "named": true,
     "fields": {
@@ -423,11 +484,7 @@
         "required": true,
         "types": [
           {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "quoted_string",
+            "type": "string",
             "named": true
           }
         ]

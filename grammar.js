@@ -27,10 +27,11 @@ export default grammar({
   rules: {
     // Entry points
     // source_file: $ => $.line_command,
+    entry_point: $ => choice($.line_command, $.tag_command),
     line_command: $ => seq($.triple_greater, choice($.unit_command, $.named_command), $.stop_token),
     tag_command: $ => seq($.hash, choice($.named_command, $.implicit_command), $.stop_token),
     // TOKENS
-    unit_command: $ => seq(field('name', choice($.identifier, $.quoted_string))),
+    unit_command: $ => field('name', $.string),
     implicit_command: $ => field('arguments', $.arguments),
     triple_greater: $ => '>>>',
     comma: $ => ',',
@@ -46,7 +47,7 @@ export default grammar({
 
 
     identifier: $ => IDENTIFIER_REGEX,
-    named_command: $ => seq(field('name', choice($.identifier, $.quoted_string)), $.colon, field('arguments', $.arguments)),
+    named_command: $ => seq(field('name', $.string), $.colon, field('arguments', $.arguments)),
 
     _concrete_value: $ => prec(1, choice(
       // String
@@ -56,7 +57,7 @@ export default grammar({
       $.null,
       $.number,
     )),
-    named_value: $ => seq(choice($.quoted_string, $.identifier_string), $.equals_sign, $.value),
+    named_value: $ => seq(field("name", $.string), $.equals_sign, $.value),
     empty_collection: $ => seq($.open_parenthesis, $.close_parenthesis),
     argument_array: $ => seq($.value, repeat(seq($.comma, $.value)), optional($.comma)),
     argument_map: $ => seq($.named_value, repeat(seq($.comma, $.named_value)), optional($.comma)),

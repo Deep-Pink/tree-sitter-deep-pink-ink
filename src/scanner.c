@@ -13,7 +13,7 @@ typedef enum
     ERROR,
 } Token;
 
-#define DEBUG 1
+#define DEBUG 0
 // From this badass: https://stackoverflow.com/a/1644898
 // and this https://www.reddit.com/r/C_Programming/comments/jq8zsq/gblfq5y/ for the ## __VA_ARGS bit
 #define DBG(fmt, ...)                                     \

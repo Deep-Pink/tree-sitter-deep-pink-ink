@@ -3,6 +3,19 @@
   "name": "deep_pink_ink",
   "word": "identifier",
   "rules": {
+    "entry_point": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "line_command"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "tag_command"
+        }
+      ]
+    },
     "line_command": {
       "type": "SEQ",
       "members": [
@@ -56,26 +69,12 @@
       ]
     },
     "unit_command": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "FIELD",
-          "name": "name",
-          "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "identifier"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "quoted_string"
-              }
-            ]
-          }
-        }
-      ]
+      "type": "FIELD",
+      "name": "name",
+      "content": {
+        "type": "SYMBOL",
+        "name": "string"
+      }
     },
     "implicit_command": {
       "type": "FIELD",
@@ -153,17 +152,8 @@
           "type": "FIELD",
           "name": "name",
           "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "identifier"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "quoted_string"
-              }
-            ]
+            "type": "SYMBOL",
+            "name": "string"
           }
         },
         {
@@ -209,17 +199,12 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "quoted_string"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "identifier_string"
-            }
-          ]
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "SYMBOL",
+            "name": "string"
+          }
         },
         {
           "type": "SYMBOL",
