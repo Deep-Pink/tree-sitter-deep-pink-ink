@@ -212,8 +212,8 @@
     "root": true,
     "fields": {},
     "children": {
-      "multiple": false,
-      "required": true,
+      "multiple": true,
+      "required": false,
       "types": [
         {
           "type": "line_command",
@@ -221,6 +221,10 @@
         },
         {
           "type": "tag_command",
+          "named": true
+        },
+        {
+          "type": "text_line",
           "named": true
         }
       ]
@@ -468,6 +472,21 @@
           "type": "named_command",
           "named": true
         },
+        {
+          "type": "stop_token",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "text_line",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
         {
           "type": "stop_token",
           "named": true
