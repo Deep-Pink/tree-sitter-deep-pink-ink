@@ -27,8 +27,25 @@
       "type": "SEQ",
       "members": [
         {
+          "type": "SYMBOL",
+          "name": "start_of_line"
+        },
+        {
           "type": "PATTERN",
-          "value": ".*"
+          "value": "[^\\n]+"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stop_token"
+        }
+      ]
+    },
+    "empty_line": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "start_of_line"
         },
         {
           "type": "SYMBOL",
@@ -37,64 +54,64 @@
       ]
     },
     "line_command": {
-      "type": "PREC",
-      "value": 2,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "SYMBOL",
-            "name": "triple_greater"
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "unit_command"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "named_command"
-              }
-            ]
-          },
-          {
-            "type": "SYMBOL",
-            "name": "stop_token"
-          }
-        ]
-      }
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "start_of_line"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "start_line_command"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "unit_command"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "named_command"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stop_token"
+        }
+      ]
     },
     "tag_command": {
-      "type": "PREC",
-      "value": 2,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "SYMBOL",
-            "name": "hash"
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "named_command"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "implicit_command"
-              }
-            ]
-          },
-          {
-            "type": "SYMBOL",
-            "name": "stop_token"
-          }
-        ]
-      }
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "start_of_line"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "start_tag_command"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "named_command"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "implicit_command"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stop_token"
+        }
+      ]
     },
     "unit_command": {
       "type": "FIELD",
@@ -111,10 +128,6 @@
         "type": "SYMBOL",
         "name": "arguments"
       }
-    },
-    "triple_greater": {
-      "type": "STRING",
-      "value": ">>>"
     },
     "comma": {
       "type": "STRING",
@@ -148,16 +161,12 @@
       "type": "STRING",
       "value": "="
     },
-    "hash": {
-      "type": "STRING",
-      "value": "#"
-    },
     "stop_token": {
       "type": "CHOICE",
       "members": [
         {
           "type": "SYMBOL",
-          "name": "hash"
+          "name": "start_tag_command"
         },
         {
           "type": "SYMBOL",
@@ -705,6 +714,18 @@
     {
       "type": "SYMBOL",
       "name": "whitespace"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "start_line_command"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "start_tag_command"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "start_of_line"
     },
     {
       "type": "SYMBOL",

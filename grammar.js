@@ -21,6 +21,9 @@ export default grammar({
     $.start_string,
     $.end_string,
     $.whitespace,
+    $.start_line_command,
+    $.start_tag_command,
+    $.start_of_line,
     $._error_sentinel,
   ],
   rules: {
@@ -28,25 +31,25 @@ export default grammar({
     // source_file: $ => $.line_command,
     entry_point: ($) =>
       repeat(choice($.line_command, $.tag_command, $.text_line)),
-    text_line: ($) => seq(/.*/, $.stop_token),
+    text_line: ($) => seq($.start_of_line, /[^\n]+/, $.stop_token),
+    empty_line: ($) => seq($.start_of_line, $.stop_token),
     line_command: ($) =>
-      prec(
-        2,
-        seq(
-          $.triple_greater,
-          choice($.unit_command, $.named_command),
-          $.stop_token,
-        ),
+      seq(
+        $.start_of_line,
+        $.start_line_command,
+        choice($.unit_command, $.named_command),
+        $.stop_token,
       ),
     tag_command: ($) =>
-      prec(
-        2,
-        seq($.hash, choice($.named_command, $.implicit_command), $.stop_token),
+      seq(
+        $.start_of_line,
+        $.start_tag_command,
+        choice($.named_command, $.implicit_command),
+        $.stop_token,
       ),
     // TOKENS
     unit_command: ($) => field("name", $.string),
     implicit_command: ($) => field("arguments", $.arguments),
-    triple_greater: ($) => ">>>",
     comma: ($) => ",",
     colon: ($) => ":",
     true: ($) => "true",
@@ -55,9 +58,7 @@ export default grammar({
     open_parenthesis: ($) => "(",
     close_parenthesis: ($) => ")",
     equals_sign: ($) => "=",
-    hash: ($) => "#",
-    stop_token: ($) => choice($.hash, $.eol, $.eof),
-
+    stop_token: ($) => choice($.start_tag_command, $.eol, $.eof),
     identifier: ($) => IDENTIFIER_REGEX,
     named_command: ($) =>
       seq(field("name", $.string), $.colon, field("arguments", $.arguments)),

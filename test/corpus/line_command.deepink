@@ -7,7 +7,8 @@ Line command with quoted string value
 
 (entry_point
   (line_command
-    (triple_greater)
+    (start_of_line)
+    (start_line_command)
     (whitespace)
     (named_command
       (string
@@ -35,7 +36,8 @@ Line Command with multiple Values
 
 (entry_point
   (line_command
-    (triple_greater)
+    (start_of_line)
+    (start_line_command)
     (whitespace)
     (named_command
       (string
@@ -114,7 +116,8 @@ Tag Command with multiple Values
 
 (entry_point
   (tag_command
-    (hash)
+    (start_of_line)
+    (start_tag_command)
     (named_command
       (string
         (identifier_string
@@ -180,5 +183,23 @@ Tag Command with multiple Values
                             (null))
                           (close_parenthesis)))))
                   (close_parenthesis))))))))
+    (stop_token
+      (eol))))
+
+===
+Normal lines
+===
+This is a normal line
+This is another normal line
+
+---
+
+(entry_point
+  (text_line
+    (start_of_line)
+    (stop_token
+      (eol)))
+  (text_line
+    (start_of_line)
     (stop_token
       (eol))))

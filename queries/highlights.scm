@@ -1,8 +1,9 @@
 ; ; expressions
 [
-  (hash)
-  (triple_greater)
+  (start_tag_command)
+  (start_line_command)
   (equals_sign) ; assign
+  (colon)
 ] @operator
 
 ; ; functions
@@ -24,10 +25,7 @@
   (close_parenthesis)
 ] @punctuation.bracket @punctuation.list_marker
 
-[
-  (comma)
-  (colon)
-] @punctuation.delimiter
+(comma) @punctuation.delimiter
 
 (boolean) @boolean
 

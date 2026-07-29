@@ -275,11 +275,15 @@
           "named": true
         },
         {
-          "type": "stop_token",
+          "type": "start_line_command",
           "named": true
         },
         {
-          "type": "triple_greater",
+          "type": "start_of_line",
+          "named": true
+        },
+        {
+          "type": "stop_token",
           "named": true
         },
         {
@@ -422,7 +426,7 @@
           "named": true
         },
         {
-          "type": "hash",
+          "type": "start_tag_command",
           "named": true
         }
       ]
@@ -461,15 +465,19 @@
       "required": true,
       "types": [
         {
-          "type": "hash",
-          "named": true
-        },
-        {
           "type": "implicit_command",
           "named": true
         },
         {
           "type": "named_command",
+          "named": true
+        },
+        {
+          "type": "start_of_line",
+          "named": true
+        },
+        {
+          "type": "start_tag_command",
           "named": true
         },
         {
@@ -484,9 +492,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "start_of_line",
+          "named": true
+        },
         {
           "type": "stop_token",
           "named": true
@@ -574,10 +586,6 @@
     "named": true
   },
   {
-    "type": "hash",
-    "named": true
-  },
-  {
     "type": "identifier",
     "named": true
   },
@@ -594,11 +602,19 @@
     "named": true
   },
   {
+    "type": "start_line_command",
+    "named": true
+  },
+  {
+    "type": "start_of_line",
+    "named": true
+  },
+  {
     "type": "start_string",
     "named": true
   },
   {
-    "type": "triple_greater",
+    "type": "start_tag_command",
     "named": true
   },
   {
