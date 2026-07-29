@@ -195,11 +195,80 @@ This is another normal line
 ---
 
 (entry_point
-  (text_line
+  (content_line
     (start_of_line)
+    (text_content)
     (stop_token
       (eol)))
-  (text_line
+  (content_line
     (start_of_line)
+    (text_content)
+    (stop_token
+      (eol))))
+
+===
+Holes 1
+===
+This is a line with one {hole}
+This is a line with a nested {hole-{}}
+>>> {hole}: 1, 2, {hole}, a={hole}
+
+---
+
+(entry_point
+  (content_line
+    (start_of_line)
+    (text_content)
+    (hole
+      (start_hole)
+      (end_hole))
+    (stop_token
+      (eol)))
+  (content_line
+    (start_of_line)
+    (text_content)
+    (hole
+      (start_hole)
+      (hole
+        (start_hole)
+        (end_hole))
+      (end_hole))
+    (stop_token
+      (eol)))
+  (line_command
+    (start_of_line)
+    (start_line_command)
+    (whitespace)
+    (named_command
+      (hole
+        (start_hole)
+        (end_hole))
+      (colon)
+      (whitespace)
+      (arguments
+        (argument_bag
+          (value
+            (number))
+          (comma)
+          (whitespace)
+          (value
+            (number))
+          (comma)
+          (whitespace)
+          (value
+            (hole
+              (start_hole)
+              (end_hole)))
+          (comma)
+          (whitespace)
+          (named_value
+            (string
+              (identifier_string
+                (identifier)))
+            (equals_sign)
+            (value
+              (hole
+                (start_hole)
+                (end_hole)))))))
     (stop_token
       (eol))))

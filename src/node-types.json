@@ -188,6 +188,33 @@
     }
   },
   {
+    "type": "content_line",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "hole",
+          "named": true
+        },
+        {
+          "type": "start_of_line",
+          "named": true
+        },
+        {
+          "type": "stop_token",
+          "named": true
+        },
+        {
+          "type": "text_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "empty_collection",
     "named": true,
     "fields": {},
@@ -216,15 +243,42 @@
       "required": false,
       "types": [
         {
+          "type": "content_line",
+          "named": true
+        },
+        {
           "type": "line_command",
           "named": true
         },
         {
           "type": "tag_command",
           "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "hole",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "end_hole",
+          "named": true
         },
         {
-          "type": "text_line",
+          "type": "eol",
+          "named": true
+        },
+        {
+          "type": "hole",
+          "named": true
+        },
+        {
+          "type": "start_hole",
           "named": true
         }
       ]
@@ -339,6 +393,10 @@
         "required": true,
         "types": [
           {
+            "type": "hole",
+            "named": true
+          },
+          {
             "type": "string",
             "named": true
           }
@@ -364,6 +422,10 @@
         "multiple": false,
         "required": true,
         "types": [
+          {
+            "type": "hole",
+            "named": true
+          },
           {
             "type": "string",
             "named": true
@@ -488,25 +550,6 @@
     }
   },
   {
-    "type": "text_line",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "start_of_line",
-          "named": true
-        },
-        {
-          "type": "stop_token",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "unit_command",
     "named": true,
     "fields": {
@@ -514,6 +557,10 @@
         "multiple": false,
         "required": true,
         "types": [
+          {
+            "type": "hole",
+            "named": true
+          },
           {
             "type": "string",
             "named": true
@@ -536,6 +583,10 @@
         },
         {
           "type": "collection",
+          "named": true
+        },
+        {
+          "type": "hole",
           "named": true
         },
         {
@@ -563,6 +614,10 @@
   },
   {
     "type": "comma",
+    "named": true
+  },
+  {
+    "type": "end_hole",
     "named": true
   },
   {
@@ -602,6 +657,10 @@
     "named": true
   },
   {
+    "type": "start_hole",
+    "named": true
+  },
+  {
     "type": "start_line_command",
     "named": true
   },
@@ -615,6 +674,10 @@
   },
   {
     "type": "start_tag_command",
+    "named": true
+  },
+  {
+    "type": "text_content",
     "named": true
   },
   {

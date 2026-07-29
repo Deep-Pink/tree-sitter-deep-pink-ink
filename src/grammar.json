@@ -18,12 +18,12 @@
           },
           {
             "type": "SYMBOL",
-            "name": "text_line"
+            "name": "content_line"
           }
         ]
       }
     },
-    "text_line": {
+    "content_line": {
       "type": "SEQ",
       "members": [
         {
@@ -31,14 +31,30 @@
           "name": "start_of_line"
         },
         {
-          "type": "PATTERN",
-          "value": "[^\\n]+"
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "text_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "hole"
+              }
+            ]
+          }
         },
         {
           "type": "SYMBOL",
           "name": "stop_token"
         }
       ]
+    },
+    "text_content": {
+      "type": "PATTERN",
+      "value": "[^\\n{]+"
     },
     "empty_line": {
       "type": "SEQ",
@@ -117,8 +133,17 @@
       "type": "FIELD",
       "name": "name",
       "content": {
-        "type": "SYMBOL",
-        "name": "string"
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "string"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "hole"
+          }
+        ]
       }
     },
     "implicit_command": {
@@ -189,8 +214,17 @@
           "type": "FIELD",
           "name": "name",
           "content": {
-            "type": "SYMBOL",
-            "name": "string"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "string"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "hole"
+              }
+            ]
           }
         },
         {
@@ -239,8 +273,17 @@
           "type": "FIELD",
           "name": "name",
           "content": {
-            "type": "SYMBOL",
-            "name": "string"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "string"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "hole"
+              }
+            ]
           }
         },
         {
@@ -609,6 +652,10 @@
         {
           "type": "SYMBOL",
           "name": "collection"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "hole"
         }
       ]
     },
@@ -684,6 +731,43 @@
           "name": "false"
         }
       ]
+    },
+    "hole": {
+      "type": "PREC_LEFT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "start_hole"
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "eol"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "hole"
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "(\\\\\\{|[^{}])+"
+                }
+              ]
+            }
+          },
+          {
+            "type": "SYMBOL",
+            "name": "end_hole"
+          }
+        ]
+      }
     }
   },
   "extras": [
@@ -726,6 +810,14 @@
     {
       "type": "SYMBOL",
       "name": "start_of_line"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "start_hole"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "end_hole"
     },
     {
       "type": "SYMBOL",
