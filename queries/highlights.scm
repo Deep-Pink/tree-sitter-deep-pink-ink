@@ -12,10 +12,12 @@
 (string) @string
 
 (unit_command
-  name: (string) @tag)
+  name: (key
+    (string)) @tag)
 
 (named_command
-  name: (string) @tag)
+  name: (key
+    (string)) @tag)
 
 ; (call_expression
 ;     (template_elaborated_ident (_)* (template_elaborated_ident_part name: ((identifier) @function)). ))
@@ -35,10 +37,12 @@
 
 (tag_command
   (named_command
-    name: (string
-      (identifier_string
-        value: (identifier) @name
-        (#match? @name "(choices|line)")) @keyword)))
+    name: (key
+      (string
+        (identifier_string
+          value: (identifier) @name
+          (#match? @name "(choices|line)"))) @keyword)))
 
 (named_value
-  name: (string) @property)
+  name: (key
+    (string)) @property)

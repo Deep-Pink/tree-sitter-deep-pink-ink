@@ -20,8 +20,19 @@ typedef enum {
   START_OF_LINE,
   START_HOLE,
   END_HOLE,
+  OPEN_FORMAT_TAG,               // "<" b>
+  CLOSE_FORMAT_TAG,              // <b ">"
+  CLOSE_SELF_CLOSING_FORMAT_TAG, // <b "/>"
+  OPEN_CLOSE_FORMAT_TAG,         // "</" b>
+  SPEAKER_IDENTIFIER,
   ERROR,
 } Token;
+
+typedef enum {
+  NONE = 0,
+  IN_START_TAG,
+  IN_END_TAG,
+} FormatTagState;
 
 #define DEBUG 0
 // From this badass: https://stackoverflow.com/a/1644898
@@ -180,7 +191,9 @@ static void stack_entry_array_free(StackEntryArray *array) {
 typedef struct {
   bool is_in_string;
   bool is_in_command;
+  FormatTagState format_tag_state;
   uint32_t hole_count;
+  uint32_t format_tag_body_count;
 } Scanner;
 
 ////////////////////
@@ -200,30 +213,31 @@ static bool is_eof(TSLexer *lexer) { return lexer->eof(lexer); }
 
 static int32_t lookahead(TSLexer *lexer) { return lexer->lookahead; }
 
+static bool is_whitespace(TSLexer *lexer) {
+  return lookahead(lexer) <= ' ' && lookahead(lexer) != '\n';
+}
+
+static bool is_whitespace_or_newline(TSLexer *lexer) {
+  return lookahead(lexer) <= ' ';
+}
 ///////////////////////
 // Scanner Callbacks //
 ///////////////////////
 unsigned tree_sitter_deep_pink_ink_external_scanner_serialize(void *payload,
                                                               char *buffer) {
   Scanner *scanner = (Scanner *)payload;
-
-  // buffer[size++] = scanner->is_in_string ? 1 : 0;
-  // buffer[size++] = scanner->is_in_command;
-  // MSG("Serializing %d bytes of state\n", size);
-
   size_t bytes_written = 0;
   buffer[bytes_written++] = scanner->is_in_string ? 1 : 0;
   buffer[bytes_written++] = scanner->is_in_command;
+  memcpy(buffer + bytes_written, &scanner->format_tag_state,
+         sizeof(scanner->format_tag_state));
+  bytes_written += sizeof(scanner->format_tag_state);
   memcpy(buffer + bytes_written, &scanner->hole_count,
          sizeof(scanner->hole_count));
   bytes_written += sizeof(scanner->hole_count);
-  // memcpy(buffer + bytes_written, &scanner->state.lt_is_tmpl,
-  //        sizeof(scanner->state.lt_is_tmpl));
-  // bytes_written += sizeof(scanner->state.lt_is_tmpl);
-  // memcpy(buffer + bytes_written, &scanner->state.gt_is_tmpl,
-  //        sizeof(scanner->state.gt_is_tmpl));
-  // bytes_written += sizeof(scanner->state.gt_is_tmpl);
-  // TODO(dneto): implicit conversion be narrowing.
+  memcpy(buffer + bytes_written, &scanner->format_tag_body_count,
+         sizeof(scanner->format_tag_body_count));
+  bytes_written += sizeof(scanner->format_tag_body_count);
   return (unsigned)bytes_written;
 }
 
@@ -236,14 +250,21 @@ void tree_sitter_deep_pink_ink_external_scanner_deserialize(void *payload,
     uint32_t bytes_read = 0;
     scanner->is_in_string = buffer[bytes_read++] > 0 ? true : false;
     scanner->is_in_command = buffer[bytes_read++] > 0 ? true : false;
+    memcpy(&scanner->format_tag_state, buffer + bytes_read,
+           sizeof(scanner->format_tag_state));
+    bytes_read += sizeof(scanner->format_tag_state);
     memcpy(&scanner->hole_count, buffer + bytes_read,
            sizeof(scanner->hole_count));
     bytes_read += sizeof(scanner->hole_count);
+    memcpy(&scanner->format_tag_body_count, buffer + bytes_read,
+           sizeof(scanner->format_tag_body_count));
+    bytes_read += sizeof(scanner->format_tag_body_count);
   }
 }
 
 void *tree_sitter_deep_pink_ink_external_scanner_create(void) {
   Scanner *scanner = ts_calloc(1, sizeof(Scanner));
+  scanner->format_tag_state = NONE;
   tree_sitter_deep_pink_ink_external_scanner_deserialize(scanner, NULL, 0);
   return scanner;
 }
@@ -254,7 +275,7 @@ void tree_sitter_deep_pink_ink_external_scanner_destroy(void *payload) {
 }
 
 /// Skip all whitspace (including carriage returns).
-static void skip_ws(TSLexer *lexer) {
+static void skip_whitespace_including_newline(TSLexer *lexer) {
   while (lookahead(lexer) <= ' ' && !is_eof(lexer))
     skip(lexer);
 }
@@ -267,9 +288,24 @@ static bool skip_whitespace_to_newline(TSLexer *lexer) {
   return lookahead(lexer) == '\n';
 }
 
-static void skip_whitspace(TSLexer *lexer) {
-  while (lookahead(lexer) <= ' ' && lookahead(lexer) != '\n' && !is_eof(lexer))
+static void skip_whitespace(TSLexer *lexer) {
+  while (lookahead(lexer) <= ' ' && lookahead(lexer) != '\n' &&
+         !is_eof(lexer)) {
     skip(lexer);
+  }
+}
+
+static void consume_whitespace(TSLexer *lexer) {
+  while (lookahead(lexer) <= ' ' && lookahead(lexer) != '\n' &&
+         !is_eof(lexer)) {
+    consume(lexer);
+  }
+}
+
+static void consume_whitespace_including_newline(TSLexer *lexer) {
+  while (lookahead(lexer) <= ' ' && !is_eof(lexer)) {
+    consume(lexer);
+  }
 }
 
 static bool is_escaped_newline(TSLexer *lexer) {
@@ -297,11 +333,6 @@ bool tree_sitter_deep_pink_ink_external_scanner_scan(
     return valid_symbols[END_OF_FILE];
   }
 
-  if (valid_symbols[START_OF_LINE] && lexer->get_column(lexer) == 0) {
-    lexer->result_symbol = START_OF_LINE;
-    return true;
-  }
-
   if (scanner->hole_count > 0) {
     if (valid_symbols[END_HOLE] && lookahead(lexer) == '}') {
       consume(lexer);
@@ -309,6 +340,11 @@ bool tree_sitter_deep_pink_ink_external_scanner_scan(
       lexer->result_symbol = END_HOLE;
       return true;
     }
+  }
+
+  if (valid_symbols[START_OF_LINE] && lexer->get_column(lexer) == 0) {
+    lexer->result_symbol = START_OF_LINE;
+    return true;
   }
 
   if (scanner->is_in_string) {
@@ -319,52 +355,119 @@ bool tree_sitter_deep_pink_ink_external_scanner_scan(
       lexer->result_symbol = END_STRING;
       return true;
     }
-  }
-
-  if (valid_symbols[END_OF_LINE] && lookahead(lexer) == '\n') {
-    MSG("  at EOL\n");
-    lexer->result_symbol = END_OF_LINE;
-    scanner->is_in_command = false;
-    consume(lexer);
-    return true;
-  }
-
-  if (valid_symbols[START_TAG_COMMAND] && lookahead(lexer) == '#') {
-    scanner->is_in_command = true;
-    consume(lexer);
-    lexer->result_symbol = START_TAG_COMMAND;
-    return true;
-  }
-
-  if (valid_symbols[START_LINE_COMMAND] && lookahead(lexer) == '>') {
-    lexer->result_symbol = START_LINE_COMMAND;
-    consume(lexer);
-    if (lookahead(lexer) == '>' && consume(lexer) && lookahead(lexer) == '>' &&
-        consume(lexer)) {
-      scanner->is_in_command = true;
-      lexer->result_symbol = START_LINE_COMMAND;
-      return true;
-    }
     return false;
   }
 
-  if (!scanner->is_in_string) {
-    if (valid_symbols[WHITESPACE] && lookahead(lexer) <= ' ') {
-      skip_whitspace(lexer);
-      lexer->result_symbol = WHITESPACE;
+  bool in_tag_content =
+      scanner->format_tag_state != NONE || scanner->format_tag_body_count > 0;
+
+  if (!in_tag_content && is_whitespace(lexer)) {
+    consume_whitespace(lexer);
+    lexer->result_symbol = WHITESPACE;
+    return true;
+  } else if (in_tag_content && is_whitespace_or_newline(lexer)) {
+    consume_whitespace_including_newline(lexer);
+    lexer->result_symbol = WHITESPACE;
+    return true;
+  }
+
+  if (lookahead(lexer) == '\n') {
+    MSG("  at EOL\n");
+    scanner->is_in_command = false;
+    consume(lexer);
+    lexer->result_symbol = END_OF_LINE;
+    return true;
+  }
+
+  if (!in_tag_content) {
+    if (valid_symbols[SPEAKER_IDENTIFIER]) {
+      int32_t current = lookahead(lexer);
+      if (current == '_' || (current >= 'A' && current <= 'Z') ||
+          (current >= 'a' && current <= 'a')) {
+        lexer->result_symbol = SPEAKER_IDENTIFIER;
+        do {
+          consume(lexer);
+          current = lookahead(lexer);
+        } while (current == '_' || (current >= 'A' && current <= 'Z') ||
+                 (current >= 'a' && current <= 'a') ||
+                 (current >= '0' && current <= '9'));
+        skip_whitespace(lexer);
+        if (lookahead(lexer) == ':') {
+          return true;
+        }
+        return false;
+      }
+    }
+    if (lookahead(lexer) == '#') {
+      scanner->is_in_command = true;
+      consume(lexer);
+      lexer->result_symbol = START_TAG_COMMAND;
       return true;
     }
+    if (lookahead(lexer) == '>') {
+      lexer->result_symbol = START_LINE_COMMAND;
+      consume(lexer);
+      if (lookahead(lexer) == '>' && consume(lexer) &&
+          lookahead(lexer) == '>' && consume(lexer)) {
+        MSG("START LINE COMMAND\n");
+        scanner->is_in_command = true;
+        lexer->result_symbol = START_LINE_COMMAND;
+        return true;
+      }
+      return false;
+    }
+  }
 
-    if (valid_symbols[START_STRING] && lookahead(lexer) == '"') {
-      MSG("at start string %c\n", pretty(lookahead(lexer)));
-      {
-        scanner->is_in_string = true;
-        lexer->result_symbol = START_STRING;
+  if (!scanner->is_in_string) {
+    FormatTagState currentState = scanner->format_tag_state;
+    if (currentState == IN_START_TAG) {
+      if (lookahead(lexer) == '>') {
         consume(lexer);
+        lexer->result_symbol = CLOSE_FORMAT_TAG;
+        scanner->format_tag_body_count++;
+        scanner->format_tag_state = NONE;
+        return true;
+      }
+      if (lookahead(lexer) == '/') {
+        consume(lexer);
+        skip_whitespace(lexer);
+        if (lookahead(lexer) == '>') {
+          consume(lexer);
+          scanner->format_tag_state = NONE;
+          lexer->result_symbol = CLOSE_SELF_CLOSING_FORMAT_TAG;
+          return true;
+        }
+      }
+    } else if (currentState == IN_END_TAG) {
+      if (lookahead(lexer) == '>') {
+        consume(lexer);
+        lexer->result_symbol = CLOSE_FORMAT_TAG;
+        scanner->format_tag_state = NONE;
+        return true;
+      }
+    } else if (lookahead(lexer) == '<') {
+      consume(lexer);
+      skip_whitespace_including_newline(lexer);
+      if (lookahead(lexer) == '/') {
+        scanner->format_tag_state = IN_END_TAG;
+        lexer->result_symbol = OPEN_CLOSE_FORMAT_TAG;
+        consume(lexer);
+        scanner->format_tag_body_count--;
+        return scanner->format_tag_body_count >= 0;
+      } else {
+        scanner->format_tag_state = IN_START_TAG;
+        lexer->result_symbol = OPEN_FORMAT_TAG;
         return true;
       }
     }
-    if (valid_symbols[START_HOLE] && lookahead(lexer) == '{') {
+    if (lookahead(lexer) == '"') {
+      MSG("at start string %c\n", pretty(lookahead(lexer)));
+      scanner->is_in_string = true;
+      lexer->result_symbol = START_STRING;
+      consume(lexer);
+      return true;
+    }
+    if (lookahead(lexer) == '{') {
       consume(lexer);
       lexer->result_symbol = START_HOLE;
       scanner->hole_count += 1;

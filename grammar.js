@@ -13,7 +13,6 @@ const IDENTIFIER_REGEX = /[A-Za-z_]([A-Za-z0-9_]*)/;
 export default grammar({
   name: "deep_pink_ink",
   word: ($) => $.identifier,
-
   extras: ($) => [$.whitespace],
   externals: ($) => [
     $.eol,
@@ -26,25 +25,50 @@ export default grammar({
     $.start_of_line,
     $.start_hole,
     $.end_hole,
+    $.open_format_tag, // "<" b>
+    $.close_format_tag, // <b ">"
+    $.close_self_closing_format_tag, // <b "/>"
+    $.open_close_format_tag, // "</" b>
+    $.speaker_identifier,
     $._error_sentinel,
   ],
   rules: {
     entry_point: ($) =>
-      repeat(choice($.line_command, $.tag_command, $.content_line)),
-    content_line: ($) =>
-      seq(
-        $.start_of_line,
-        repeat(choice($.text_content, $.hole)),
-        $.stop_token,
-      ),
-    text_content: ($) => /[^\n{]+/,
+      repeat(choice($.line_command, $.tag_command, $.content_line_with_speaker, $.content_line, $.empty_line)),
+    content_line: ($) => seq(
+      $.start_of_line,
+      repeat1($._outer_content),
+      $.stop_token,
+    ),
+    content_line_with_speaker: ($) => seq(
+      $.start_of_line,
+      $.speaker,
+      repeat($._outer_content),
+      $.stop_token,
+    ),
+    speaker: ($) => choice(
+      seq($.hole, $.colon),
+      seq($.speaker_identifier, $.colon),
+      seq($.quoted_string, $.colon)
+    ),
+    _outer_content: ($) => choice($.hole, $.format_tag_command_with_body, $.self_closing_format_tag_command, $.text_content),
+    _content_element: $ => choice($.text_content, $.hole, $.self_closing_format_tag_command, $.format_tag_command_with_body),
+    format_tag_command_with_body: ($) => seq($.start_format_tag, repeat($._content_element), $.end_format_tag),
+    self_closing_format_tag_command: ($) => choice($._unit_self_closing_format_tag_command, $._self_closing_format_tag_command_with_arguments),
+    _unit_self_closing_format_tag_command: ($) => prec.right(2, seq($.open_format_tag, field("name", $.key), $.close_self_closing_format_tag)),
+    _self_closing_format_tag_command_with_arguments: ($) =>
+      seq($.open_format_tag, field("name", $.key), $.colon, field("arguments", $.arguments), $.close_self_closing_format_tag),
+    text_content: ($) => /[^\n{><]+/,
+    start_format_tag: ($) => choice($._unit_start_format_tag, $._start_format_tag_with_arguments),
+    _unit_start_format_tag: ($) => seq($.open_format_tag, field("name", $.key), $.close_format_tag),
+    _start_format_tag_with_arguments: ($) =>seq($.open_format_tag, field("name", $.key), $.colon, field("arguments", $.arguments), $.close_format_tag),
+    end_format_tag: ($) => seq($.open_close_format_tag, field("name", $.key), $.close_format_tag),
     empty_line: ($) => seq($.start_of_line, $.stop_token),
-    line_command: ($) =>
-      seq(
-        $.start_of_line,
-        $.start_line_command,
-        choice($.unit_command, $.named_command),
-        $.stop_token,
+    line_command: ($) => seq(
+          $.start_of_line,
+          $.start_line_command,
+          choice($.unit_command, $.named_command),
+          $.stop_token,
       ),
     tag_command: ($) =>
       seq(
@@ -54,7 +78,7 @@ export default grammar({
         $.stop_token,
       ),
     // TOKENS
-    unit_command: ($) => field("name", choice($.string, $.hole)),
+    unit_command: ($) => field("name", $.key),
     implicit_command: ($) => field("arguments", $.arguments),
     comma: ($) => ",",
     colon: ($) => ":",
@@ -68,14 +92,12 @@ export default grammar({
     identifier: ($) => IDENTIFIER_REGEX,
     named_command: ($) =>
       seq(
-        field("name", choice($.string, $.hole)),
+        field("name", $.key),
         $.colon,
         field("arguments", $.arguments),
       ),
 
     _concrete_value: ($) =>
-      prec(
-        1,
         choice(
           // String
           $.string,
@@ -84,9 +106,8 @@ export default grammar({
           $.null,
           $.number,
         ),
-      ),
     named_value: ($) =>
-      seq(field("name", choice($.string, $.hole)), $.equals_sign, $.value),
+      seq(field("name", $.key), $.equals_sign, $.value),
     empty_collection: ($) => seq($.open_parenthesis, $.close_parenthesis),
     argument_array: ($) =>
       seq($.value, repeat(seq($.comma, $.value)), optional($.comma)),
@@ -134,7 +155,7 @@ export default grammar({
         $.close_parenthesis,
       ),
     collection: ($) => choice($.empty_collection, $.array, $.map, $.bag),
-    value: ($) => choice(prec.left(1, $._concrete_value), $.collection, $.hole),
+    value: ($) => choice($._concrete_value, $.collection, $.hole),
     // Values
     number: ($) => NUMBER_REGEX,
     identifier_string: ($) => field("value", $.identifier),
@@ -151,5 +172,6 @@ export default grammar({
           $.end_hole,
         ),
       ),
+    key: ($) => choice($.hole, $.string)
   },
 });
