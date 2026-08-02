@@ -383,13 +383,13 @@ bool tree_sitter_deep_pink_ink_external_scanner_scan(
     if (valid_symbols[SPEAKER_IDENTIFIER]) {
       int32_t current = lookahead(lexer);
       if (current == '_' || (current >= 'A' && current <= 'Z') ||
-          (current >= 'a' && current <= 'a')) {
+          (current >= 'a' && current <= 'z')) {
         lexer->result_symbol = SPEAKER_IDENTIFIER;
         do {
           consume(lexer);
           current = lookahead(lexer);
         } while (current == '_' || (current >= 'A' && current <= 'Z') ||
-                 (current >= 'a' && current <= 'a') ||
+                 (current >= 'a' && current <= 'z') ||
                  (current >= '0' && current <= '9'));
         skip_whitespace(lexer);
         if (lookahead(lexer) == ':') {
